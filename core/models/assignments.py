@@ -13,11 +13,6 @@ class GradeEnum(str, enum.Enum):
     C = 'C'
     D = 'D'
 
-    @classmethod
-    def key_exists(cls, key):
-        return key in cls.__members__
-
-
 class AssignmentStateEnum(str, enum.Enum):
     DRAFT = 'DRAFT'
     SUBMITTED = 'SUBMITTED'
@@ -86,15 +81,16 @@ class Assignment(db.Model):
         return cls.filter(cls.teacher_id == teacher_id).all()
     
     @classmethod
-    def grading(cls, _id, grade, principal: Principal):
+    def grade_assignment(cls, _id, _grade, principal: Principal):
         assignment = Assignment.get_by_id(_id)
         assertions.assert_found(assignment, 'No assignment with this id was found')
         assertions.assert_valid(assignment.teacher_id == principal.teacher_id, 'This assignment was submitted to another teacher')
-        assertions.assert_valid(assignment.state == AssignmentStateEnum.DRAFT, 'Only a submitted assignment can be graded')
-        assertions.assert_valid(GradeEnum.key_exists(assignment.grade), 'The assigned grade is invalid')
+        assertions.assert_valid(assignment.state == AssignmentStateEnum.SUBMITTED, 'Only a submitted assignment can be graded')
         
 
-        assignment.grade = grade
-        assignment.status = AssignmentStateEnum.GRADED
+        assignment.grade = _grade
+        assignment.state = AssignmentStateEnum.GRADED
+
         db.session.flush()
 
+        return assignment

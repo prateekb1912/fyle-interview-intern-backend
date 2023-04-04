@@ -25,13 +25,7 @@ def list_assignments(p):
 @decorators.accept_payload
 def grade_assignments(incoming_payload, p):
     """Grade an assignment"""    
-    try:
-        grade_assignment_payload = AssignmentGradingSchema().load(incoming_payload)
-    except Exception as err:
-        print(err.messages)
-        return APIResponse.respond(data={'error': err.messages})
-
-    print('Loaded payload:', grade_assignment_payload)  
+    grade_assignment_payload = AssignmentGradingSchema().load(incoming_payload)
 
     graded_assignment = Assignment.grade_assignment(
         _id=grade_assignment_payload.id,
