@@ -1,8 +1,9 @@
 from marshmallow import Schema, EXCLUDE, fields, post_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from marshmallow_enum import EnumField
+from marshmallow.decorators import validates
 from core.models.assignments import Assignment, GradeEnum
 from core.libs.helpers import GeneralObject
+from core.libs.exceptions import FyleError
 
 
 class AssignmentSchema(SQLAlchemyAutoSchema):
@@ -43,6 +44,13 @@ class AssignmentGradingSchema(Schema):
 
     id = fields.Integer(required=True, allow_none = False)
     grade = fields.String(required=True, allow_none=False)
+
+    @validates('grade')
+    def validate_grade(self, value):
+        try:
+            return GradeEnum(value)
+        except ValueError:
+            raise FyleError(400, 'Invalid grade value')
 
     @post_load
     def initiate_class(self, data_dict, many, partial):
